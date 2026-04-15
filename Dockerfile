@@ -1,5 +1,4 @@
 FROM python:3.11-slim
-FROM pytorch/pytorch:2.0.1-cpu
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -10,9 +9,10 @@ WORKDIR /app
 
 
 COPY requirements.txt ./
-RUN pip install torch
+RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt
+
 
 COPY app ./app
 COPY emotion_hierarchical_model.joblib ./emotion_hierarchical_model.joblib
