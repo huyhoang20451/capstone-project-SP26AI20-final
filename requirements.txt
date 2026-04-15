@@ -1,0 +1,16 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+httpx==0.28.1
+numpy==2.2.4
+sqlalchemy==2.0.40
+psycopg2-binary==2.9.10
+joblib==1.4.2
+underthesea==6.8.4
+torch==2.6.0
+transformers==4.51.3
+safetensors==0.5.3
+sentence-transformers==4.1.0
+pydantic==2.11.3
+jinja2==3.1.6
+python-multipart==0.0.20
+huggingface-hub==0.30.2

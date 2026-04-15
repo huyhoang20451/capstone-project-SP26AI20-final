@@ -1,0 +1,13 @@
+.venv
+.cache
+__pycache__
+.pytest_cache
+.vscode
+image_visualization
+training_service
+test_service
+whisper_vi_final_model
+phobert-stage2
+checkpoint-3824-20260411T075134Z-3-002
+*.ipynb
+*.code-workspace

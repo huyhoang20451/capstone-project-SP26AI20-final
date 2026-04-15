@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: web-emotion-chat-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: web_emotion_chat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: web-emotion-chat-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  server:
+    build:
+      context: .
+    container_name: web-emotion-chat-api
+    restart: unless-stopped
+    depends_on:
+      - db
+      - ollama
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/web_emotion_chat
+      OLLAMA_BASE_URL: http://ollama:11434
+      DEFAULT_LLM_MODEL: ${DEFAULT_LLM_MODEL:-tamly-model-withoutemotion}
+      PHOBERT_MULTITASK_MODEL_ID: ${PHOBERT_MULTITASK_MODEL_ID:-usernone1234/phobert-multitask}
+      WHISPER_MODEL_ID: ${WHISPER_MODEL_ID:-usernone1234/whisper-vi-audio}
+      HF_HOME: /root/.cache/huggingface
+    ports:
+      - "8000:8000"
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+
+volumes:
+  postgres_data:
+  ollama_data:
+  hf_cache:
+
