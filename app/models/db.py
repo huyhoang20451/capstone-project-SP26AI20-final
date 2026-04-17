@@ -1,6 +1,5 @@
 import os
 import time
-from urllib.parse import urlsplit, urlunsplit
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,47 +8,15 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
 import datetime
 
-# Thay thế bằng thông tin DB của bạn qua biến môi trường.
-# Cấu trúc: postgresql://username:password@host:port/database_name
+# PostgreSQL URL được lấy từ biến môi trường DATABASE_URL.
+# Khi chạy local có thể dùng localhost; trong Docker Compose dùng service db.
 
 
 def _default_database_url() -> str:
-    # Trong container Docker Compose, hostname của Postgres là tên service `db`.
-    if os.path.exists("/.dockerenv"):
-        return "postgresql+psycopg2://postgres:Hoang399100@db:5432/web_emotion_chat"
-
-    # Chạy local thì mặc định SQLite để tránh lỗi khi chưa bật Postgres.
-    return "sqlite:///./web_emotion_chat.db"
+    return "postgresql+psycopg2://postgres:Hoang399100@localhost:5432/web_emotion_chat"
 
 
 DATABASE_URL = os.getenv("DATABASE_URL", _default_database_url())
-
-
-def _normalize_database_url(url: str) -> str:
-    # Hostname `db` chỉ hoạt động trong Docker Compose network.
-    if os.path.exists("/.dockerenv"):
-        return url
-
-    try:
-        parsed = urlsplit(url)
-        if parsed.hostname != "db":
-            return url
-
-        auth = ""
-        if parsed.username:
-            auth = parsed.username
-            if parsed.password:
-                auth += f":{parsed.password}"
-            auth += "@"
-
-        port = f":{parsed.port}" if parsed.port else ""
-        netloc = f"{auth}localhost{port}"
-        return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
-    except Exception:
-        return url
-
-
-DATABASE_URL = _normalize_database_url(DATABASE_URL)
 
 MAX_DB_RETRIES = int(os.getenv("DB_CONNECT_MAX_RETRIES", "20"))
 DB_RETRY_SECONDS = float(os.getenv("DB_CONNECT_RETRY_SECONDS", "2"))
@@ -57,9 +24,6 @@ DB_RETRY_SECONDS = float(os.getenv("DB_CONNECT_RETRY_SECONDS", "2"))
 engine_kwargs = {
     "pool_pre_ping": True,
 }
-
-if DATABASE_URL.startswith("sqlite"):
-    engine_kwargs["connect_args"] = {"check_same_thread": False}
 
 engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
