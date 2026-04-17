@@ -9,6 +9,11 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d web_emotion_chat"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -27,8 +32,10 @@ services:
     container_name: web-emotion-chat-api
     restart: unless-stopped
     depends_on:
-      - db
-      - ollama
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/web_emotion_chat
       OLLAMA_BASE_URL: http://ollama:11434
