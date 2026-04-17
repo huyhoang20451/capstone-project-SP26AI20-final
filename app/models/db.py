@@ -10,7 +10,7 @@ import datetime
 
 # Thay thế bằng thông tin DB của bạn qua biến môi trường.
 # Cấu trúc: postgresql://username:password@host:port/database_name
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:Hoang399100@localhost:5432/web_emotion_chat")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:Hoang399100@db:5432/web_emotion_chat")
 
 MAX_DB_RETRIES = int(os.getenv("DB_CONNECT_MAX_RETRIES", "20"))
 DB_RETRY_SECONDS = float(os.getenv("DB_CONNECT_RETRY_SECONDS", "2"))
