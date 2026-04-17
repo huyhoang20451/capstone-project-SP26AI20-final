@@ -220,6 +220,3 @@ class PhoBertMultitaskService:
 @lru_cache(maxsize=1)
 def get_phobert_multitask_service() -> PhoBertMultitaskService:
 	return PhoBertMultitaskService()
-
-
-phobert_multitask_service = get_phobert_multitask_service()

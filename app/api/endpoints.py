@@ -10,7 +10,7 @@ from app.services.llm_service import llm_service
 from app.services.history_service import history_service
 from app.schemas.chat import EmotionPredictRequest, UserInput
 from app.services.ml_emotion_service import ml_emotion_service
-from app.services.phobert_multitask_service import phobert_multitask_service
+from app.services.phobert_multitask_service import get_phobert_multitask_service
 from app.services.whisper_service import whisper_service
 from app.config import EMOTION_MODELS
 from sqlalchemy.orm import Session
@@ -44,6 +44,18 @@ def _resolve_emotion_model_key(selected_name: str | None) -> str:
 def _build_sse_payload(payload: dict) -> str:
     return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
+
+def _predict_emotion_with_fallback(message: str, selected_emotion_model_key: str):
+    warning = None
+    if selected_emotion_model_key == "phobert":
+        try:
+            phobert_service = get_phobert_multitask_service()
+            return phobert_service.predict(message), warning
+        except Exception as exc:
+            warning = f"Không tải được PhoBERT ({exc}). Đang fallback về Machine Learning."
+
+    return ml_emotion_service.predict(message), warning
+
 @router.get("/")
 async def load_index(request: Request):
     models = await llm_service.get_available_models()
@@ -60,10 +72,7 @@ async def _handle_chat(data: UserInput, db: Session):
         }
 
     selected_emotion_model_key = _resolve_emotion_model_key(data.emotion_model)
-    if selected_emotion_model_key == "phobert":
-        ml_result = phobert_multitask_service.predict(data.message)
-    else:
-        ml_result = ml_emotion_service.predict(data.message)
+    ml_result, warning = _predict_emotion_with_fallback(data.message, selected_emotion_model_key)
 
     llm_emotion = llm_response.get("emotion", "Bình thường")
     ml_emotion = ml_result.get("emotion", "Không xác định")
@@ -104,6 +113,7 @@ async def _handle_chat(data: UserInput, db: Session):
             "emotion_similarity": emotion_similarity,
             "model_used": llm_response.get("model_used"),
             "emotion_model_used": EMOTION_MODELS.get(selected_emotion_model_key, {}).get("name", "Machine Learning"),
+            "emotion_model_warning": warning,
             "history_id": conversation.id,
             "message_id": assistant_message.id,
         }
@@ -123,10 +133,7 @@ async def consult_api(data: UserInput, db: Session = Depends(get_db)):
 @router.post("/consult-api/stream")
 async def consult_api_stream(data: UserInput, db: Session = Depends(get_db)):
     selected_emotion_model_key = _resolve_emotion_model_key(data.emotion_model)
-    if selected_emotion_model_key == "phobert":
-        ml_result = phobert_multitask_service.predict(data.message)
-    else:
-        ml_result = ml_emotion_service.predict(data.message)
+    ml_result, warning = _predict_emotion_with_fallback(data.message, selected_emotion_model_key)
 
     ml_emotion = ml_result.get("emotion", "Không xác định")
     ml_detail_emotion = ml_result.get("detail_emotion", ml_emotion)
@@ -200,6 +207,7 @@ async def consult_api_stream(data: UserInput, db: Session = Depends(get_db)):
                 "emotion_similarity": emotion_similarity,
                 "model_used": final_event.get("model_used"),
                 "emotion_model_used": EMOTION_MODELS.get(selected_emotion_model_key, {}).get("name", "Machine Learning"),
+                "emotion_model_warning": warning,
                 "history_id": conversation.id,
                 "message_id": assistant_message.id,
             },
@@ -215,7 +223,11 @@ async def consult_api_stream(data: UserInput, db: Session = Depends(get_db)):
 
 @router.post("/api/emotion/predict")
 async def predict_emotion(data: EmotionPredictRequest):
-    return phobert_multitask_service.predict(data.message)
+    selected_emotion_model_key = _resolve_emotion_model_key(data.emotion_model)
+    ml_result, warning = _predict_emotion_with_fallback(data.message, selected_emotion_model_key)
+    if warning:
+        ml_result = {**ml_result, "warning": warning}
+    return ml_result
 
 
 @router.post("/api/voice/transcribe")

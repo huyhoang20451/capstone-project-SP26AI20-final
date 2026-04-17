@@ -16,12 +16,16 @@ def resolve_model_source(
 		token = os.getenv("HF_TOKEN")
 		try:
 			return Path(snapshot_download(repo_id=repo_id, cache_dir=cache_dir, token=token))
-		except Exception:
+		except Exception as exc:
 			if local_path is not None:
 				candidate = Path(local_path).expanduser()
 				if candidate.exists():
 					return candidate
-			raise
+			raise RuntimeError(
+				"Không tải được model từ Hugging Face Hub. "
+				f"repo_id={repo_id}. Nếu repo gated/private, hãy đặt biến môi trường HF_TOKEN "
+				"(token có quyền đọc model) hoặc cấu hình local_path tới model đã tải sẵn."
+			) from exc
 
 	if local_path is not None:
 		candidate = Path(local_path).expanduser()
