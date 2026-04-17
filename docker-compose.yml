@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: web_emotion_chat
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: Hoang399100
     ports:
       - "5432:5432"
     healthcheck:
@@ -37,7 +37,7 @@ services:
       ollama:
         condition: service_started
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/web_emotion_chat
+      DATABASE_URL: postgresql://postgres:Hoang399100@db:5432/web_emotion_chat
       OLLAMA_BASE_URL: http://ollama:11434
       DEFAULT_LLM_MODEL: ${DEFAULT_LLM_MODEL:-tamly-model-withoutemotion}
       PHOBERT_MULTITASK_MODEL_ID: ${PHOBERT_MULTITASK_MODEL_ID:-usernone1234/phobert-multitask}
