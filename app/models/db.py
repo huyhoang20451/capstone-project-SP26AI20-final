@@ -47,6 +47,7 @@ class Message(Base):
     content = Column(Text, nullable=False)
     emotion = Column(String(50))
     ml_detail_emotion = Column(String(50))
+    emotion_model_used = Column(String(100), default="Machine Learning")
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
     
     conversation = relationship("Conversation", back_populates="messages")

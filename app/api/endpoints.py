@@ -96,6 +96,7 @@ async def _handle_chat(data: UserInput, db: Session):
         emotion=llm_emotion,
         ml_detail_emotion=ml_detail_emotion,
         conversation_id=data.conversation_id,
+        emotion_model_used=EMOTION_MODELS.get(selected_emotion_model_key, {}).get("name", "Machine Learning"),
     )
 
     conversation, assistant_message = history
@@ -190,6 +191,7 @@ async def consult_api_stream(data: UserInput, db: Session = Depends(get_db)):
             emotion=llm_emotion,
             ml_detail_emotion=ml_detail_emotion,
             conversation_id=data.conversation_id,
+            emotion_model_used=EMOTION_MODELS.get(selected_emotion_model_key, {}).get("name", "Machine Learning"),
         )
 
         conversation, assistant_message = history

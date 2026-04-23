@@ -348,6 +348,7 @@
                         llmEmotion: msg.llm_emotion || msg.emotion || null,
                         mlEmotion: msg.ml_emotion || msg.ml_detail_emotion || null,
                         mlDetailEmotion: msg.ml_detail_emotion || msg.ml_emotion || null,
+                        emotionModelUsed: msg.emotion_model_used || 'Machine Learning',
                     });
                 });
 
@@ -444,6 +445,7 @@
             const mlEmotion = emotionMeta?.mlEmotion;
             const mlDetailEmotion = emotionMeta?.mlDetailEmotion;
             const reliabilityScore = emotionMeta?.reliabilityScore;
+            const emotionModelUsed = emotionMeta?.emotionModelUsed || 'Machine Learning';
 
             const hasLLMEmotion = llmEmotion && llmEmotion !== 'Không xác định' && !llmEmotion.includes('dữ liệu');
             const hasMLEmotion = mlEmotion && mlEmotion !== 'Không xác định';
@@ -459,7 +461,7 @@
                     </div>` : ''}
                     ${hasMLEmotion ? `<div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full font-medium bg-sky-100 text-sky-800 border border-sky-200">
                         <i class="fa-solid fa-brain text-[10px]"></i>
-                        <span>ML: ${mlDetailEmotion}</span>
+                        <span>${emotionModelUsed}: ${mlDetailEmotion}</span>
                     </div>` : ''}
                     ${reliabilityScore !== null && reliabilityScore !== undefined && reliabilityScore !== 1.0 ? `<div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-700 border border-gray-200">
                         <i class="fa-solid fa-shield-heart text-[10px]"></i>
@@ -600,12 +602,14 @@
                 const mlEmotion = donePayload.ml_emotion ?? null;
                 const mlDetailEmotion = donePayload.ml_detail_emotion ?? null;
                 const reliabilityScore = donePayload.reliability_score;
+                const emotionModelUsed = donePayload.emotion_model_used ?? 'Machine Learning';
 
                 finalizeStreamingBotMessage(streamNode, advice, {
                     llmEmotion,
                     mlEmotion,
                     mlDetailEmotion,
-                    reliabilityScore
+                    reliabilityScore,
+                    emotionModelUsed
                 });
 
                 if (Number.isInteger(donePayload.history_id)) {

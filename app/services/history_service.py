@@ -13,14 +13,15 @@ class HistoryService:
         return new_conv
 
     @staticmethod
-    def add_message(db: Session, conv_id: int, role: str, content: str, emotion: str = None, ml_detail_emotion: str = None):
+    def add_message(db: Session, conv_id: int, role: str, content: str, emotion: str = None, ml_detail_emotion: str = None, emotion_model_used: str = None):
         """Thêm một tin nhắn vào cuộc trò chuyện."""
         new_msg = Message(
             conversation_id=conv_id,
             role=role,
             content=content,
             emotion=emotion,
-            ml_detail_emotion=ml_detail_emotion
+            ml_detail_emotion=ml_detail_emotion,
+            emotion_model_used=emotion_model_used or "Machine Learning"
         )
         db.add(new_msg)
         db.commit()
@@ -59,6 +60,7 @@ class HistoryService:
         emotion: str = None,
         ml_detail_emotion: str = None,
         conversation_id: int = None,
+        emotion_model_used: str = None,
     ):
         """
         Lưu chat vào hội thoại đã chọn nếu có, nếu không thì tạo hội thoại mới.
@@ -80,6 +82,7 @@ class HistoryService:
             ai_res,
             emotion=emotion,
             ml_detail_emotion=ml_detail_emotion,
+            emotion_model_used=emotion_model_used,
         )
 
         return conv, ai_msg
